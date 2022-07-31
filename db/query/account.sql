@@ -6,6 +6,9 @@ FOR NO KEY UPDATE;
 
 -- for update 解决读脏数据，for no key update 解决读脏数据，并且解决由于外键导致的死锁
 
+-- name: GetAccount :one
+SELECT * FROM accounts
+WHERE id = $1 LIMIT 1;
 
 -- name: ListAccounts :many
 SELECT * FROM accounts

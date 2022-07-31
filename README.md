@@ -10,3 +10,6 @@ migrate -path db/migrations create -dir=db/migration -ext=sql -seq=1 init
 ### sqlc
 go install github.com/kyleconroy/sqlc/cmd/sqlc@v1.13.0
 latest(v1.14.0) 需要go1.18
+### gomock
+go install github.com/golang/mock/mockgen@v1.6.0
+mockgen -package mockdb -destination db/mock/store.go github.com/gaolegaole/simple_bank/db/sqlc Store
