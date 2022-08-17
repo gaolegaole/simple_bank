@@ -2,6 +2,8 @@ package api
 
 import (
 	"database/sql"
+	"fmt"
+	"github.com/gaolegaole/simple_bank/token"
 	"log"
 	"net/http"
 
@@ -12,7 +14,7 @@ import (
 )
 
 type createAccountRequest struct {
-	Owner    string `json:"owner" binding:"required"`
+	//Owner    string `json:"owner" binding:"required"`
 	Currency string `json:"currency" binding:"required,currency`
 }
 
@@ -22,8 +24,11 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
+
+	payload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
 	arg := db.CreateAccountParams{
-		Owner:    req.Owner,
+		Owner:    payload.Username,
 		Currency: req.Currency,
 		Balance:  0,
 	}
@@ -55,6 +60,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 		return
 	}
 	account, err := server.store.GetAccount(ctx, req.ID)
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -63,6 +69,13 @@ func (server *Server) getAccount(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
+	payload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	if account.Owner != payload.Username {
+		err = fmt.Errorf("account id: %d doesn't belong to authoricated user", req.ID)
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
 	ctx.JSON(http.StatusOK, account)
 }
 

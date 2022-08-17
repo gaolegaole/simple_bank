@@ -13,7 +13,7 @@ import (
 
 func createRandomAccount(t *testing.T) Account {
 	user := createRandomUser(t)
-	
+
 	arg := CreateAccountParams{
 		Owner:    user.Username,
 		Balance:  util.RandomMoney(),
@@ -29,7 +29,7 @@ func createRandomAccount(t *testing.T) Account {
 	require.Equal(t, arg.Owner, account.Owner)
 	require.NotZero(t, account.CreatedAt)
 	require.NotZero(t, account.ID)
-	require.WithinDuration(t, time.Now(), account.CreatedAt, time.Second)
+	require.WithinDuration(t, time.Now(), account.CreatedAt, time.Second*5)
 	return account
 }
 func TestCreateAccount(t *testing.T) {
@@ -77,22 +77,24 @@ func TestDeleteAccount(t *testing.T) {
 }
 
 func TestListAccounts(t *testing.T) {
+	var lastAccount Account
 	for i := 0; i < 10; i++ {
-		createRandomAccount(t)
+		lastAccount = createRandomAccount(t)
 	}
 	arg := ListAccountsParams{
 		Limit:  5,
 		Offset: 5,
+		Owner:  lastAccount.Owner,
 	}
 	//创建10个，跳过5个还有5个，那就说明ok
 	accounts, err := testQueries.ListAccounts(context.Background(), arg)
 	require.NoError(t, err)
-	require.Equal(t, 5, len(accounts))
+	require.GreaterOrEqual(t, 1, len(accounts))
 	var CSTZone = time.FixedZone("CST", 8*3600) //东八区
 	// var cstSh, _ = time.LoadLocation("Asia/Shanghai") //上海 windows没有安装go会获取失败，所以使用上面这个
 	for _, account := range accounts {
 		require.NotEmpty(t, account)
-
+		require.Equal(t, lastAccount.Owner, account.Owner)
 		require.WithinDuration(t, account.CreatedAt.In(CSTZone), time.Now().In(CSTZone), time.Second*5)
 	}
 }
