@@ -8,25 +8,27 @@
 # source.txt:
 # 	echo "this is the source" > source.txt
 
+pg_port = 5432
+
 postgres:
-	docker run --name pg12 -p 5432:5432 -e POSTGRES_PASSWORD=123123 -d postgres:12-alpine
+	docker run --name pg12 -p $(pg_port):5432 -e POSTGRES_PASSWORD=123123 -d postgres:12-alpine
 createdb:
 	docker exec -it pg12 createdb --username=postgres --owner=postgres simple_bank
 dropdb:
 	docker exec -it pg12 dropdb --username=postgres simple_bank
 migrateup:
-	migrate -path db/migration -database "postgresql://postgres:123123@localhost:5432/simple_bank?sslmode=disable" -verbose up
+	migrate -path db/migration -database "postgresql://postgres:123123@localhost:$(pg_port)/simple_bank?sslmode=disable" -verbose up
 migrateup1:
-	migrate -path db/migration -database "postgresql://postgres:123123@localhost:5432/simple_bank?sslmode=disable" -verbose up 1
+	migrate -path db/migration -database "postgresql://postgres:123123@localhost:$(pg_port)/simple_bank?sslmode=disable" -verbose up 1
 migratedown:
-	migrate -path db/migration -database "postgresql://postgres:123123@localhost:5432/simple_bank?sslmode=disable" -verbose down
+	migrate -path db/migration -database "postgresql://postgres:123123@localhost:$(pg_port)/simple_bank?sslmode=disable" -verbose down
 migratedown1:
-	migrate -path db/migration -database "postgresql://postgres:123123@localhost:5432/simple_bank?sslmode=disable" -verbose down 1
+	migrate -path db/migration -database "postgresql://postgres:123123@localhost:$(pg_port)/simple_bank?sslmode=disable" -verbose down 1
 # 生成model CRUD
 sqlc:
-	docker run --rm -v E:\code\simple_bank:/src -w /src kjconroy/sqlc generate
+	docker run --rm -v /mnt/d/code/simple_bank:/src -w /src kjconroy/sqlc generate
 test:
-	go test -v -cover ./...
+	go test -v -cover ./... -count=1
 server:
 	go run main.go
 mock:

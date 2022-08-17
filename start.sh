@@ -1,0 +1,1 @@
+/app/migrate -path /db/migration -database "postgresql://postgres:123123@postgres:5432/simple_bank?sslmode=disable" -verbose up
